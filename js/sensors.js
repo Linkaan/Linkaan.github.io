@@ -333,6 +333,14 @@ $(function () {
 	    subtitle: {
 	        text: 'Any irregular occuring events is displayed here.'
 	    },
+			yAxis: {
+				title: {
+					enabled: false
+				},
+				labels: {
+					enabled: false
+				}
+			},
 	    xAxis: {
 	        type: 'datetime',
 	        tickWidth: 0,
@@ -351,16 +359,6 @@ $(function () {
 	            return  '<b>' + this.series.name +'</b><br/>' +
 	                Highcharts.dateFormat('%A, %b %e - %H:%M:%S, %Y', new Date(this.x));
 	        }
-	    },
-	    legend: {
-	        layout: 'vertical',
-	        align: 'left',
-	        verticalAlign: 'top',
-	        x: 100,
-	        y: 70,
-	        floating: true,
-	        backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF',
-	        borderWidth: 1
 	    },
 	    plotOptions: {
 	        scatter: {

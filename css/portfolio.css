@@ -218,13 +218,16 @@ h1, h2, h3, h4, h5, h6 {
 /* Carousel items - change these to suit your needs */
 
 .carousel .item1 {
-	background: #3B3B3B;
+	background-image: url("http://i.imgur.com/hzNNin4.jpg");
+	background-color: #3B3B3B;
 }
 
 .carousel .item2 {
-	background: #0fa89e;
+	background-image: url("http://i.imgur.com/PuZEQvK.jpg");
+	background-color: #0fa89e;
 }
 
 .carousel .item3 {
-	background: #a80f0f;
+	background-image: url("http://i.imgur.com/ljVmo9d.jpg");
+	background-color: #a80f0f;
 }
