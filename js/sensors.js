@@ -479,6 +479,11 @@ $(function () {
 		var timeInSeconds = Math.round(timeInMillis / 1000.0);
 
 		var i = 0, j = 0, k = 0, l = 0, m = 0;
+		i = Math.abs(obj.temperature.outside[0].datetime - timeInSeconds)/600-1;
+		j = Math.abs(obj.temperature.inside[0].datetime - timeInSeconds)/600-1;
+		k = Math.abs(obj.temperature.cpu[0].datetime - timeInSeconds)/600-1;
+		l = Math.abs(obj.pressure[0].datetime - timeInSeconds)/600-1;
+		m = Math.abs(obj.humidity[0].datetime - timeInSeconds)/600-1;
 		for(var n = 0; n <= 7*24*6; ++n) {
 			var nSeconds = timeInSeconds + n*600;
 
