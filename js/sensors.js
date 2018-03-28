@@ -321,6 +321,114 @@ $(function () {
 			}]
 	});
 
+		// Luftdata graph
+	$('#luftdata').highcharts({
+	chart: {
+		type: 'line',
+				zoomType: 'x'
+		},
+			title: {
+					text: 'Weekly air quality measurements'
+			},
+
+			subtitle: {
+					text: 'Air quality is calculated using the Nova PM sensor SDS011.'
+			},
+
+			xAxis: {
+				type: 'datetime',
+					tickInterval: 24 * 3600 * 1000, // one day
+					tickWidth: 0,
+					gridLineWidth: 1,
+					labels: {
+							align: 'left',
+							x: 3,
+							y: -3
+					},
+					dateTimeLabelFormats: {
+						day: '%A'
+				}
+			},
+
+			yAxis: [{ // left y axis
+					title: {
+							text: 'PM (% μg/m^3)'
+					},
+					labels: {
+							align: 'left',
+							x: 3,
+							y: 16,
+							format: '{value:.,0f}'
+					},
+					showFirstLabel: false
+			}, { // right y axis
+					linkedTo: 0,
+					gridLineWidth: 0,
+					opposite: true,
+					title: {
+							text: 'PM (% μg/m^3)'
+					},
+					labels: {
+							align: 'right',
+							x: -3,
+							y: 16,
+							format: '{value:.,0f}'
+					},
+					showFirstLabel: false
+			}],
+
+			tooltip: {
+					shared: true,
+					crosshairs: true
+			},
+
+			plotOptions: {
+					series: {
+							cursor: 'pointer',
+							point: {
+									events: {
+											click: function (e) {
+													hs.htmlExpand(null, {
+															pageOrigin: {
+																	x: e.pageX || e.clientX,
+																	y: e.pageY || e.clientY
+															},
+															headingText: this.series.name,
+															maincontentText: Highcharts.dateFormat('%A, %b %e, %Y', this.x) + ':<br/> ' +
+																	this.y + ' % rH',
+															width: 230
+													});
+											}
+									}
+							},
+							marker: {
+									lineWidth: 1
+							}
+					}
+			},
+
+			series: [{
+					name: 'PM10',
+					pointInterval: 600 * 1000, // ten minutes
+					pointStart: timeInMillis,
+					lineWidth: 4,
+					marker: {
+							radius: 4
+					},
+					color: "#bfa577"
+			},
+			{
+					name: 'PM2.5',
+					pointInterval: 600 * 1000, // ten minutes
+					pointStart: timeInMillis,
+					lineWidth: 4,
+					marker: {
+							radius: 4
+					},
+					color: "#77bf9f"
+			}]
+	});
+
 	// Events graph
 	$('#events').highcharts({
 	    chart: {
@@ -395,15 +503,17 @@ $(function () {
 	    }]
 	});
 
-  var tChart = $('#temperature').highcharts();
+  	var tChart = $('#temperature').highcharts();
 	var pChart = $('#pressure').highcharts();
 	var hChart = $('#humidity').highcharts();
+	var lChart = $('#luftdata').highcharts();
 	var eChart = $('#events').highcharts();
 
 	tChart.showLoading('Loading data from server.');
 	pChart.showLoading('Loading data from server..');
 	hChart.showLoading('Loading data from server...');
-	eChart.showLoading('Loading data from server.');
+	lChart.showLoading('Loading data from server.');
+	eChart.showLoading('Loading data from server..');
 
 	var ref = new Firebase("https://resplendent-torch-8387.firebaseio.com/sensors");
 	ref.on("value", function(snapshot) {
@@ -420,6 +530,8 @@ $(function () {
 		tChart.series[2].setData([]);
 		pChart.series[0].setData([]);
 		hChart.series[0].setData([]);
+		lChart.series[0].setData([]);
+		lChart.series[1].setData([]);
 		eChart.series[0].setData([]);
 		eChart.series[1].setData([]);
 		eChart.series[2].setData([]);
@@ -476,14 +588,36 @@ $(function () {
 		obj.humidity=arr.slice(0);
 		dict = {};
 		arr.length = 0;
+		obj.luftdata.pm25.forEach(function(t) {
+			t.datetime = Math.round(new Date(t.datetime).getTime()/600000)*600;
+			if (!dict[t.datetime]) dict[t.datetime]=t;
+		});
+		for(var datetime in dict) {
+			arr.push(dict[datetime]);
+		}
+		obj.luftdata.pm25=arr.slice(0);
+		dict = {};
+		arr.length = 0;
+		obj.luftdata.pm10.forEach(function(t) {
+			t.datetime = Math.round(new Date(t.datetime).getTime()/600000)*600;
+			if (!dict[t.datetime]) dict[t.datetime]=t;
+		});
+		for(var datetime in dict) {
+			arr.push(dict[datetime]);
+		}
+		obj.luftdata.pm10=arr.slice(0);
+		dict = {};
+		arr.length = 0;
 		var timeInSeconds = Math.round(timeInMillis / 1000.0);
 
-		var i = 0, j = 0, k = 0, l = 0, m = 0;
+		var i = 0, j = 0, k = 0, l = 0, m = 0, o = 0, p = 0;
 		while(obj.temperature.outside[i].datetime < timeInSeconds) i++;
 		while(obj.temperature.inside[j].datetime < timeInSeconds) j++;
 		while(obj.temperature.cpu[k].datetime < timeInSeconds) k++;
-		while(obj.pressure[l].datetime < timeInSeconds) l++
-		while(obj.humidity[m].datetime < timeInSeconds) m++
+		while(obj.pressure[l].datetime < timeInSeconds) l++;
+		while(obj.humidity[m].datetime < timeInSeconds) m++;
+		while(obj.luftdata.pm25[o].datetime < timeInSeconds) o++;
+		while(obj.luftdata.pm10[p].datetime < timeInSeconds) p++;
 		for(var n = 0; n <= 7*24*6; ++n) {
 			var nSeconds = timeInSeconds + n*600;
 
@@ -544,6 +678,29 @@ $(function () {
 			}else {
 				hChart.series[0].addPoint(null, false, false);
 			}
+
+			// Luftdata graph
+			if(o < obj.luftdata.pm10.length && obj.luftdata.pm10[o].datetime == nSeconds) {
+				if(isNaN(obj.luftdata.pm10[o].value)) {
+					lChart.series[0].addPoint(null, false, false);
+				}else {
+					lChart.series[0].addPoint(obj.luftdata.pm10[o].value / 10.0, false, false);
+				}
+				o++;
+			}else {
+				lChart.series[0].addPoint(null, false, false);
+			}
+
+			if(p < obj.luftdata.pm25.length && obj.luftdata.pm25[p].datetime == nSeconds) {
+				if(isNaN(obj.luftdata.pm25[p].value)) {
+					lChart.series[1].addPoint(null, false, false);
+				}else {
+					lChart.series[1].addPoint(obj.luftdata.pm25[p].value / 10.0, false, false);
+				}
+				p++;
+			}else {
+				lChart.series[1].addPoint(null, false, false);
+			}
 		}
 
 		tChart.hideLoading();
@@ -552,6 +709,8 @@ $(function () {
 		pChart.redraw();
 		hChart.hideLoading();
 		hChart.redraw();
+		lChart.hideLoading();
+		lChart.redraw();
 
 		// Events graph
 		var shutter_open = [], shutter_close = [], rain = [], pir = [];
