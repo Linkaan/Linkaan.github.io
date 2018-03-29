@@ -1,6 +1,9 @@
 $(function () {
 	// Apply theme
 	Highcharts.setOptions({
+		time: {
+        	timezone: 'Europe/Stockholm'
+    	},
 		global: {
 			 useUTC: false
 		}
@@ -684,7 +687,7 @@ $(function () {
 				if(isNaN(obj.luftdata.pm10[o].value)) {
 					lChart.series[0].addPoint(null, false, false);
 				}else {
-					lChart.series[0].addPoint(obj.luftdata.pm10[o].value, false, false);
+					lChart.series[0].addPoint(+obj.luftdata.pm10[o].value, false, false);
 				}
 				o++;
 			}else {
@@ -695,7 +698,7 @@ $(function () {
 				if(isNaN(obj.luftdata.pm25[p].value)) {
 					lChart.series[1].addPoint(null, false, false);
 				}else {
-					lChart.series[1].addPoint(obj.luftdata.pm25[p].value, false, false);
+					lChart.series[1].addPoint(+obj.luftdata.pm25[p].value, false, false);
 				}
 				p++;
 			}else {
